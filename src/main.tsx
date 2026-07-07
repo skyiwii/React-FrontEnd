@@ -27,7 +27,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 
 import { inicializarStorage } from "./services/initStorage";
 
-inicializarStorage();
+await inicializarStorage();
 
 import App from "./App";
 
