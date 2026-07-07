@@ -19,12 +19,16 @@ interface AuthContextType {
   login: (
     correo: string,
     password: string
-  ) => {
+  ) => Promise<{
     ok: boolean;
     mensaje?: string;
-  };
+  }>;
 
   logout: () => void;
+
+  actualizarUsuarioContexto: (
+    usuario: Usuario
+  ) => void;
 
   estaLogueado: boolean;
 
@@ -60,13 +64,13 @@ export function AuthProvider({
 
   }, []);
 
-  function login(
+  async function login(
     correo: string,
     password: string
   ) {
 
     const resultado =
-      iniciarSesion(
+      await iniciarSesion(
         correo,
         password
       );
@@ -97,6 +101,16 @@ export function AuthProvider({
 
   }
 
+  function actualizarUsuarioContexto(
+    usuarioActualizado: Usuario
+  ) {
+
+    setUsuario(
+      usuarioActualizado
+    );
+
+  }
+
   return (
 
     <AuthContext.Provider
@@ -108,6 +122,8 @@ export function AuthProvider({
         login,
 
         logout,
+
+        actualizarUsuarioContexto,
 
         estaLogueado:
           usuario !== null,
