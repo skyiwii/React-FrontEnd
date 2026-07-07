@@ -1,15 +1,31 @@
 import { productosBase } from "../data/productosBase";
-import { guardarProductos } from "./productosStorage";
+
+import {
+  obtenerProductos,
+  crearProducto
+} from "./productosStorage";
+
 import { crearAdminDefault } from "./authStorage";
 import { crearCategoriasDemo } from "./categoriasStorage";
 
-export function inicializarStorage(): void {
-  const productosGuardados = localStorage.getItem("productos");
+export async function inicializarStorage(): Promise<void> {
 
-  if (!productosGuardados) {
-    guardarProductos(productosBase);
+  const productos = await obtenerProductos();
+
+  if (productos.length === 0) {
+
+    for (const producto of productosBase) {
+
+      const { id, ...datosProducto } = producto;
+
+      await crearProducto(datosProducto);
+
+    }
+
   }
 
-  crearAdminDefault();
-  crearCategoriasDemo();
+  await crearAdminDefault();
+
+  await crearCategoriasDemo();
+
 }

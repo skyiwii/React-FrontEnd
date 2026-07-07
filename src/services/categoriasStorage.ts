@@ -1,76 +1,68 @@
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "firebase/firestore";
+
+import { db } from "../../firebase/firebase";
 import type { Categoria } from "../types/Categoria";
 
-const STORAGE_CATEGORIAS = "categorias";
+const coleccionCategorias = collection(db, "categorias");
 
-export function obtenerCategorias(): Categoria[] {
-  return JSON.parse(localStorage.getItem(STORAGE_CATEGORIAS) || "[]");
+export async function obtenerCategorias(): Promise<Categoria[]> {
+  const snapshot = await getDocs(coleccionCategorias);
+
+  return snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...(documento.data() as Omit<Categoria, "id">)
+  }));
 }
 
-export function guardarCategorias(categorias: Categoria[]): void {
-  localStorage.setItem(STORAGE_CATEGORIAS, JSON.stringify(categorias));
+export async function crearCategoria(
+  nuevaCategoria: Categoria
+): Promise<void> {
+  await addDoc(coleccionCategorias, {
+    nombre: nuevaCategoria.nombre
+  });
 }
 
-export function crearCategoria(nuevaCategoria: Categoria): void {
-  const categorias = obtenerCategorias();
-  categorias.push(nuevaCategoria);
-  guardarCategorias(categorias);
+export async function eliminarCategoria(
+  idCategoria: string
+): Promise<void> {
+  const referencia = doc(db, "categorias", idCategoria);
+
+  await deleteDoc(referencia);
 }
 
-export function eliminarCategoria(idCategoria: string): void {
-  const categorias = obtenerCategorias();
-
-  const categoriasActualizadas = categorias.filter(
-    categoria => categoria.id !== idCategoria
-  );
-
-  guardarCategorias(categoriasActualizadas);
-}
-
-export function editarCategoria(
+export async function editarCategoria(
   idCategoria: string,
   datosActualizados: Partial<Categoria>
-): void {
-  const categorias = obtenerCategorias();
+): Promise<void> {
+  const referencia = doc(db, "categorias", idCategoria);
 
-  const categoriasActualizadas = categorias.map(categoria => {
-    if (categoria.id === idCategoria) {
-      return {
-        ...categoria,
-        ...datosActualizados
-      };
-    }
-
-    return categoria;
+  await updateDoc(referencia, {
+    ...datosActualizados
   });
-
-  guardarCategorias(categoriasActualizadas);
 }
 
-export function crearCategoriasDemo(): void {
-  const categorias = obtenerCategorias();
+export async function crearCategoriasDemo(): Promise<void> {
+  const categorias = await obtenerCategorias();
 
   if (categorias.length > 0) {
     return;
   }
 
-  const categoriasDemo: Categoria[] = [
-    {
-      id: crypto.randomUUID(),
-      nombre: "Aromaterapia"
-    },
-    {
-      id: crypto.randomUUID(),
-      nombre: "Cosmética Natural"
-    },
-    {
-      id: crypto.randomUUID(),
-      nombre: "Bienestar"
-    },
-    {
-      id: crypto.randomUUID(),
-      nombre: "Té Natural"
-    }
+  const categoriasDemo = [
+    { nombre: "Aromaterapia" },
+    { nombre: "Cosmética Natural" },
+    { nombre: "Bienestar" },
+    { nombre: "Té Natural" }
   ];
 
-  guardarCategorias(categoriasDemo);
+  for (const categoria of categoriasDemo) {
+    await addDoc(coleccionCategorias, categoria);
+  }
 }
