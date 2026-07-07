@@ -30,7 +30,9 @@ function WidgetContacto() {
     return () => clearTimeout(timer);
   }, []);
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+  evento: React.FormEvent<HTMLFormElement>
+  ) {
     evento.preventDefault();
 
     const nuevosErrores: Record<string, string> = {
@@ -52,17 +54,17 @@ function WidgetContacto() {
       return;
     }
 
-    crearContacto({
-      id: crypto.randomUUID(),
-      origen: "Widget Inicio",
-      nombre: nombre.trim(),
-      rut: rut.trim(),
-      correo: correo.trim().toLowerCase(),
-      telefono: telefono.trim(),
-      asunto: "Consulta desde widget",
-      mensaje: mensaje.trim(),
-      fecha: new Date().toLocaleString("es-CL"),
-      estado: "pendiente"
+    await crearContacto({
+        id: crypto.randomUUID(),
+        origen: "Widget Inicio",
+        nombre: nombre.trim(),
+        rut: rut.trim(),
+        correo: correo.trim().toLowerCase(),
+        telefono: telefono.trim(),
+        asunto: "Consulta desde widget",
+        mensaje: mensaje.trim(),
+        fecha: new Date().toLocaleString("es-CL"),
+        estado: "pendiente"
     });
 
     setMensajeSistema("Consulta enviada correctamente");
