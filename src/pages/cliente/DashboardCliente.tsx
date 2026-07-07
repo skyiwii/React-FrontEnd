@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import type { Producto } from "../../types/Producto";
 
 import { useAuth } from "../../context/AuthContext";
 import { obtenerProductos } from "../../services/productosStorage";
@@ -9,7 +12,16 @@ function DashboardCliente() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
 
-  const productos = obtenerProductos();
+  const [productos, setProductos] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    async function cargarProductos() {
+      const productosFirebase = await obtenerProductos();
+      setProductos(productosFirebase);
+    }
+
+    cargarProductos();
+  }, []);
 
   const favoritosIds = usuario?.favoritos || [];
 

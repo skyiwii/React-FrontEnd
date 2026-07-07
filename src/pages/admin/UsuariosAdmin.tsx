@@ -4,8 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import type { Usuario } from "../../types/Usuario";
 import {
   obtenerUsuarios,
-  guardarUsuarios
+  eliminarUsuario
 } from "../../services/authStorage";
+
+
 import { useAuth } from "../../context/AuthContext";
 
 function UsuariosAdmin() {
@@ -16,39 +18,43 @@ function UsuariosAdmin() {
   const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
-    setUsuarios(obtenerUsuarios());
+  async function cargarUsuarios() {
+    const usuariosFirebase = await obtenerUsuarios();
+    setUsuarios(usuariosFirebase);
+    }
+
+    cargarUsuarios();
   }, []);
 
-  function recargarUsuarios() {
-    setUsuarios(obtenerUsuarios());
+  async function recargarUsuarios() {
+    const usuariosFirebase = await obtenerUsuarios();
+    setUsuarios(usuariosFirebase);
   }
 
-  function eliminarUsuario(idUsuario: string) {
-    const usuariosActualizados = obtenerUsuarios().filter(
-      usuario => usuario.id !== idUsuario
-    );
 
-    guardarUsuarios(usuariosActualizados);
-    recargarUsuarios();
-  }
+    async function handleEliminar(usuario: Usuario) {
 
-  function handleEliminar(usuario: Usuario) {
     if (usuario.rol === "admin") {
       alert("No puedes eliminar administradores.");
       return;
     }
 
-    const confirmar = confirm(`¿Eliminar a ${usuario.nombre}?`);
+    const confirmar = confirm(
+      `¿Eliminar a ${usuario.nombre}?`
+    );
 
     if (!confirmar) {
       return;
     }
 
-    eliminarUsuario(usuario.id);
+    await eliminarUsuario(usuario.id);
+
+    await recargarUsuarios();
+
   }
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate("/");
   }
 

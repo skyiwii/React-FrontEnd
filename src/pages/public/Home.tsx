@@ -15,8 +15,13 @@ function Home() {
   const [productos, setProductos] = useState<Producto[]>([]);
 
   useEffect(() => {
-    setProductos(obtenerProductos());
-  }, []);
+  async function cargarProductos() {
+    const productosFirebase = await obtenerProductos();
+    setProductos(productosFirebase);
+  }
+
+  cargarProductos();
+}, []);
 
   const destacados = productos.slice(0, 3);
 

@@ -25,7 +25,9 @@ function Contacto() {
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [mensajeSistema, setMensajeSistema] = useState("");
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+  evento: React.FormEvent<HTMLFormElement>
+  ) {
     evento.preventDefault();
 
     const nuevosErrores: Record<string, string> = {
@@ -49,7 +51,7 @@ function Contacto() {
       return;
     }
 
-    crearContacto({
+    await crearContacto({
       id: crypto.randomUUID(),
       origen: "Página Contacto",
       nombre: nombre.trim(),

@@ -2,35 +2,41 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import type { Producto } from "../../types/Producto";
-import { obtenerProductos } from "../../services/productosStorage";
+
+import {
+  obtenerProductos,
+  obtenerProductoPorId
+} from "../../services/productosStorage";
+
 import { formatearPrecio } from "../../utils/formatters";
 import { resolverImagen } from "../../utils/images";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/layout/Footer";
 
-
 function ProductoDetalle() {
   const { id } = useParams();
 
+  const [producto, setProducto] = useState<Producto | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [imagenActual, setImagenActual] = useState("");
 
   useEffect(() => {
-    const productosStorage = obtenerProductos();
-    setProductos(productosStorage);
+    async function cargarDatos() {
+      if (!id) return;
 
-    const productoEncontrado = productosStorage.find(
-      (producto) => String(producto.id) === String(id)
-    );
+      const productoEncontrado = await obtenerProductoPorId(id);
+      const listaProductos = await obtenerProductos();
 
-    if (productoEncontrado) {
-      setImagenActual(productoEncontrado.imagen);
+      if (productoEncontrado) {
+        setProducto(productoEncontrado);
+        setImagenActual(productoEncontrado.imagen);
+      }
+
+      setProductos(listaProductos);
     }
-  }, [id]);
 
-  const producto = productos.find(
-    (productoItem) => String(productoItem.id) === String(id)
-  );
+    cargarDatos();
+  }, [id]);
 
   if (!producto) {
     return (
@@ -41,7 +47,10 @@ function ProductoDetalle() {
           <div className="text-center mt-5">
             <h2>Producto no encontrado</h2>
 
-            <Link to="/productos" className="btn btn-dark mt-3">
+            <Link
+              to="/productos"
+              className="btn btn-dark mt-3"
+            >
               Volver a productos
             </Link>
           </div>
@@ -50,13 +59,15 @@ function ProductoDetalle() {
     );
   }
 
-  const miniaturasProducto = producto.miniaturas || [producto.imagen];
+  const miniaturasProducto =
+    producto.miniaturas || [producto.imagen];
 
   const relacionados = productos.filter(
-    (productoItem) => String(productoItem.id) !== String(producto.id)
+    (productoItem) =>
+      String(productoItem.id) !== String(producto.id)
   );
 
-  return (
+    return (
     <>
       <Navbar />
 
@@ -74,7 +85,9 @@ function ProductoDetalle() {
             <div className="fila-detalle">
               <section className="producto-galeria">
                 <div className="imagen-principal-wrapper">
-                  <div className="badge-natural">NATURAL · ARTESANAL</div>
+                  <div className="badge-natural">
+                    NATURAL · ARTESANAL
+                  </div>
 
                   <img
                     className="img-principal"
@@ -100,11 +113,17 @@ function ProductoDetalle() {
               </section>
 
               <section className="producto-info">
-                <div className="producto-categoria">{producto.categoria}</div>
+                <div className="producto-categoria">
+                  {producto.categoria}
+                </div>
 
-                <h1 className="producto-titulo">{producto.nombre}</h1>
+                <h1 className="producto-titulo">
+                  {producto.nombre}
+                </h1>
 
-                <p className="precio">{formatearPrecio(producto.precio)}</p>
+                <p className="precio">
+                  {formatearPrecio(producto.precio)}
+                </p>
 
                 <div className="descripcion-corta">
                   <p>{producto.descripcion}</p>
@@ -113,22 +132,30 @@ function ProductoDetalle() {
                 <div className="beneficios-grid">
                   <article className="beneficio-item">
                     <h4>🌿 Ingredientes Naturales</h4>
-                    <p>Elaborado con componentes cuidadosamente seleccionados.</p>
+                    <p>
+                      Elaborado con componentes cuidadosamente seleccionados.
+                    </p>
                   </article>
 
                   <article className="beneficio-item">
                     <h4>✨ Producción Artesanal</h4>
-                    <p>Procesos responsables y de baja intervención.</p>
+                    <p>
+                      Procesos responsables y de baja intervención.
+                    </p>
                   </article>
 
                   <article className="beneficio-item">
                     <h4>🤍 Bienestar Integral</h4>
-                    <p>Pensado para hábitos conscientes y naturales.</p>
+                    <p>
+                      Pensado para hábitos conscientes y naturales.
+                    </p>
                   </article>
 
                   <article className="beneficio-item">
                     <h4>🚚 Envíos Nacionales</h4>
-                    <p>Cobertura de despacho a distintas regiones de Chile.</p>
+                    <p>
+                      Cobertura de despacho a distintas regiones de Chile.
+                    </p>
                   </article>
                 </div>
 
@@ -141,7 +168,10 @@ function ProductoDetalle() {
                     Consultar por WhatsApp
                   </a>
 
-                  <Link to="/productos" className="btn btn-outline-dark btn-lg">
+                  <Link
+                    to="/productos"
+                    className="btn btn-outline-dark btn-lg"
+                  >
                     Ver más productos
                   </Link>
                 </div>
@@ -157,18 +187,21 @@ function ProductoDetalle() {
                 <h3>Información Técnica</h3>
 
                 <ul>
-                  {(producto.info || ["Producto agregado desde administración"]).map(
-                    (item) => (
-                      <li key={item}>{item}</li>
-                    )
-                  )}
+                  {(producto.info || [
+                    "Producto agregado desde administración"
+                  ]).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
                 </ul>
               </article>
 
               <article className="detalle-card">
                 <h3>Consejos de Uso</h3>
 
-                <p>{producto.uso || "Producto agregado desde administración."}</p>
+                <p>
+                  {producto.uso ||
+                    "Producto agregado desde administración."}
+                </p>
               </article>
             </div>
           </div>
@@ -180,7 +213,10 @@ function ProductoDetalle() {
 
             <div className="grilla-relacionados">
               {relacionados.map((productoRelacionado) => (
-                <article className="card-mini" key={productoRelacionado.id}>
+                <article
+                  className="card-mini"
+                  key={productoRelacionado.id}
+                >
                   <div className="card-img">
                     <img
                       src={resolverImagen(productoRelacionado.imagen)}
@@ -191,7 +227,9 @@ function ProductoDetalle() {
                   <div className="card-body">
                     <h4>{productoRelacionado.nombre}</h4>
 
-                    <p>{formatearPrecio(productoRelacionado.precio)}</p>
+                    <p>
+                      {formatearPrecio(productoRelacionado.precio)}
+                    </p>
 
                     <Link
                       to={`/productos/${productoRelacionado.id}`}
@@ -206,7 +244,8 @@ function ProductoDetalle() {
           </div>
         </section>
       </main>
-    <Footer />
+
+      <Footer />
     </>
   );
 }

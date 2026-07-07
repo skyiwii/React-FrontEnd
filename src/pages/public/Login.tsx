@@ -33,7 +33,7 @@ function Login() {
     return Object.values(nuevosErrores).every((error) => error === "");
   }
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     const formularioValido = validarFormulario();
@@ -43,7 +43,7 @@ function Login() {
       return;
     }
 
-    const resultado = login(
+    const resultado = await login(
       correo.trim().toLowerCase(),
       password.trim()
     );

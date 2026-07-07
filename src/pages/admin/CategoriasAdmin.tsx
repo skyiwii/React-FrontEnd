@@ -20,14 +20,19 @@ function CategoriasAdmin() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setCategorias(obtenerCategorias());
-  }, []);
+  async function cargarCategorias() {
+    const categorias = await obtenerCategorias();
+    setCategorias(categorias);
+    }
 
-  function recargarCategorias() {
-    setCategorias(obtenerCategorias());
+    cargarCategorias();
+  }, []);
+  async function recargarCategorias() {
+  const categorias = await obtenerCategorias();
+    setCategorias(categorias);
   }
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit( evento: React.FormEvent<HTMLFormElement>){
     evento.preventDefault();
 
     if (!nombre.trim()) {
@@ -36,21 +41,21 @@ function CategoriasAdmin() {
     }
 
     if (categoriaEditandoId) {
-      editarCategoria(categoriaEditandoId, {
+      await editarCategoria(categoriaEditandoId, {
         nombre: nombre.trim()
       });
 
       setCategoriaEditandoId(null);
     } else {
-      crearCategoria({
-        id: crypto.randomUUID(),
-        nombre: nombre.trim()
+      await crearCategoria({
+          id: "",
+          nombre: nombre.trim()
       });
     }
 
     setNombre("");
     setError("");
-    recargarCategorias();
+    await recargarCategorias();
   }
 
   function cargarEditar(categoria: Categoria) {
@@ -62,15 +67,15 @@ function CategoriasAdmin() {
     });
   }
 
-  function handleEliminar(categoria: Categoria) {
+  async function handleEliminar(categoria: Categoria) {
     const confirmar = confirm(`¿Eliminar "${categoria.nombre}"?`);
 
     if (!confirmar) {
       return;
     }
 
-    eliminarCategoria(categoria.id);
-    recargarCategorias();
+    await eliminarCategoria(categoria.id);
+    await recargarCategorias();
   }
 
   function handleLogout() {

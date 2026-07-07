@@ -11,35 +11,52 @@ import { resolverImagen } from "../../utils/images";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/layout/Footer";
 
-
 function Productos() {
-  const { usuario } = useAuth();
+  const {
+  usuario,
+  actualizarUsuarioContexto
+} = useAuth();
 
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [categoriasAdmin, setCategoriasAdmin] = useState<string[]>([]);
   const [categoriaActual, setCategoriaActual] = useState("Todos");
   const [textoBusqueda, setTextoBusqueda] = useState("");
+
   const [favoritos, setFavoritos] = useState<Array<string | number>>(
     usuario?.favoritos || []
   );
 
   useEffect(() => {
-    setProductos(obtenerProductos());
+    async function cargarDatos() {
+      const productosFirestore = await obtenerProductos();
+      setProductos(productosFirestore);
+
+      const categoriasFirestore = await obtenerCategorias();
+
+      setCategoriasAdmin(
+        categoriasFirestore.map((categoria) => categoria.nombre)
+      );
+    }
+
+    cargarDatos();
   }, []);
 
-  const categoriasProductos = productos.map((producto) => producto.categoria);
-
-  const categoriasAdmin = obtenerCategorias().map(
-    (categoria) => categoria.nombre
+  const categoriasProductos = productos.map(
+    (producto) => producto.categoria
   );
 
   const categorias = [
     "Todos",
-    ...new Set([...categoriasProductos, ...categoriasAdmin])
+    ...new Set([
+      ...categoriasProductos,
+      ...categoriasAdmin
+    ])
   ].filter(Boolean);
 
   const productosFiltrados = productos.filter((producto) => {
     const coincideCategoria =
-      categoriaActual === "Todos" || producto.categoria === categoriaActual;
+      categoriaActual === "Todos" ||
+      producto.categoria === categoriaActual;
 
     const coincideBusqueda = producto.nombre
       .toLowerCase()
@@ -48,30 +65,43 @@ function Productos() {
     return coincideCategoria && coincideBusqueda;
   });
 
-  function productoEsFavorito(idProducto: string | number) {
-    return favoritos.some((id) => String(id) === String(idProducto));
+  function productoEsFavorito(
+    idProducto: string | number
+  ) {
+    return favoritos.some(
+      (id) => String(id) === String(idProducto)
+    );
   }
 
-  function toggleFavorito(idProducto: string | number) {
-    if (!usuario) {
-      alert("Debes iniciar sesión para guardar favoritos.");
-      return;
-    }
-
-    const existe = productoEsFavorito(idProducto);
-
-    const favoritosActualizados = existe
-      ? favoritos.filter((id) => String(id) !== String(idProducto))
-      : [...favoritos, idProducto];
-
-    const usuarioActualizado = {
-      ...usuario,
-      favoritos: favoritosActualizados
-    };
-
-    actualizarUsuario(usuarioActualizado);
-    setFavoritos(favoritosActualizados);
+async function toggleFavorito(
+  idProducto: string | number
+) {
+  if (!usuario) {
+    alert("Debes iniciar sesión para guardar favoritos.");
+    return;
   }
+
+  const existe = productoEsFavorito(idProducto);
+
+  const favoritosActualizados = existe
+    ? favoritos.filter(
+        (id) => String(id) !== String(idProducto)
+      )
+    : [...favoritos, idProducto];
+
+  const usuarioActualizado = {
+    ...usuario,
+    favoritos: favoritosActualizados
+  };
+
+  await actualizarUsuario(usuarioActualizado);
+
+  actualizarUsuarioContexto(usuarioActualizado);
+
+  setFavoritos(favoritosActualizados);
+}
+
+
 
   return (
     <>
@@ -130,20 +160,29 @@ function Productos() {
               </div>
             ) : (
               productosFiltrados.map((producto) => (
-                <article className="producto-card" key={producto.id}>
+                <article
+                  className="producto-card"
+                  key={producto.id}
+                >
                   <button
                     className={`btn-favorito ${
-                      productoEsFavorito(producto.id) ? "favorito-activo" : ""
+                      productoEsFavorito(producto.id)
+                        ? "favorito-activo"
+                        : ""
                     }`}
                     type="button"
-                    onClick={() => toggleFavorito(producto.id)}
+                    onClick={() =>
+                      toggleFavorito(producto.id)
+                    }
                     aria-label={
                       productoEsFavorito(producto.id)
                         ? "Quitar de favoritos"
                         : "Agregar a favoritos"
                     }
                   >
-                    {productoEsFavorito(producto.id) ? "♥" : "♡"}
+                    {productoEsFavorito(producto.id)
+                      ? "♥"
+                      : "♡"}
                   </button>
 
                   <img
@@ -159,7 +198,10 @@ function Productos() {
                     {formatearPrecio(producto.precio)}
                   </strong>
 
-                  <Link to={`/productos/${producto.id}`} className="btn btn-dark">
+                  <Link
+                    to={`/productos/${producto.id}`}
+                    className="btn btn-dark"
+                  >
                     Ver detalles
                   </Link>
                 </article>
@@ -168,9 +210,11 @@ function Productos() {
           </section>
         </div>
       </main>
-    <Footer />
+
+      <Footer />
     </>
   );
 }
 
 export default Productos;
+

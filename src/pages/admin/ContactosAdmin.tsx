@@ -21,11 +21,17 @@ function ContactosAdmin() {
   const [estado, setEstado] = useState<"todos" | EstadoContacto>("todos");
 
   useEffect(() => {
-    setContactos(obtenerContactos());
+    cargarContactos();
   }, []);
 
-  function recargarContactos() {
-    setContactos(obtenerContactos());
+  async function cargarContactos() {
+    const contactosFirebase = await obtenerContactos();
+    setContactos(contactosFirebase);
+  }
+
+  async function recargarContactos() {
+    const contactosFirebase = await obtenerContactos();
+    setContactos(contactosFirebase);
   }
 
   function handleLogout() {
@@ -33,15 +39,18 @@ function ContactosAdmin() {
     navigate("/");
   }
 
-  function handleEliminar(contacto: Contacto) {
-    const confirmar = confirm(`¿Eliminar mensaje de ${contacto.nombre}?`);
+  async function handleEliminar(contacto: Contacto) {
+    const confirmar = confirm(
+      `¿Eliminar mensaje de ${contacto.nombre}?`
+    );
 
     if (!confirmar) {
       return;
     }
 
-    eliminarContacto(contacto.id);
-    recargarContactos();
+    await eliminarContacto(contacto.id);
+
+    await recargarContactos();
   }
 
   const contactosFiltrados = contactos.filter((contacto) => {
@@ -53,7 +62,8 @@ function ContactosAdmin() {
       contacto.mensaje.toLowerCase().includes(texto);
 
     const coincideEstado =
-      estado === "todos" || contacto.estado === estado;
+      estado === "todos" ||
+      contacto.estado === estado;
 
     return coincideTexto && coincideEstado;
   });
@@ -77,7 +87,10 @@ function ContactosAdmin() {
             </Link>
 
             <div className="ms-auto d-flex gap-2">
-              <Link to="/intranet/admin" className="btn btn-outline-dark btn-sm">
+              <Link
+                to="/intranet/admin"
+                className="btn btn-outline-dark btn-sm"
+              >
                 Dashboard
               </Link>
 
@@ -96,7 +109,9 @@ function ContactosAdmin() {
       <main className="contactos-admin-main">
         <section className="contactos-hero">
           <div className="container">
-            <span className="admin-tag">Administración</span>
+            <span className="admin-tag">
+              Administración
+            </span>
 
             <h1>Mensajes de Contacto</h1>
 
@@ -113,7 +128,9 @@ function ContactosAdmin() {
               <div>
                 <h2>Bandeja de mensajes</h2>
 
-                <p>Gestiona dudas, consultas y solicitudes de clientes.</p>
+                <p>
+                  Gestiona dudas, consultas y solicitudes de clientes.
+                </p>
               </div>
 
               <div className="contactos-filtros">
@@ -122,20 +139,37 @@ function ContactosAdmin() {
                   className="form-control"
                   placeholder="Buscar por nombre, correo o mensaje..."
                   value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
+                  onChange={(e) =>
+                    setBusqueda(e.target.value)
+                  }
                 />
 
                 <select
                   className="form-control"
                   value={estado}
                   onChange={(e) =>
-                    setEstado(e.target.value as "todos" | EstadoContacto)
+                    setEstado(
+                      e.target.value as
+                        | "todos"
+                        | EstadoContacto
+                    )
                   }
                 >
-                  <option value="todos">Todos</option>
-                  <option value="pendiente">Pendientes</option>
-                  <option value="respondido">Respondidos</option>
-                  <option value="archivado">Archivados</option>
+                  <option value="todos">
+                    Todos
+                  </option>
+
+                  <option value="pendiente">
+                    Pendientes
+                  </option>
+
+                  <option value="respondido">
+                    Respondidos
+                  </option>
+
+                  <option value="archivado">
+                    Archivados
+                  </option>
                 </select>
               </div>
             </div>
@@ -149,18 +183,26 @@ function ContactosAdmin() {
                 <p>No hay mensajes para mostrar.</p>
               ) : (
                 contactosFiltrados.map((contacto) => (
-                  <article className="contacto-card" key={contacto.id}>
+                  <article
+                    className="contacto-card"
+                    key={contacto.id}
+                  >
                     <div className="contacto-header">
                       <div>
                         <h3>{contacto.nombre}</h3>
 
-                        <p className="contacto-correo">{contacto.correo}</p>
-
-                        <p className="contacto-telefono">
-                          {contacto.telefono || "Sin teléfono"}
+                        <p className="contacto-correo">
+                          {contacto.correo}
                         </p>
 
-                        <p className="contacto-fecha">{contacto.fecha}</p>
+                        <p className="contacto-telefono">
+                          {contacto.telefono ||
+                            "Sin teléfono"}
+                        </p>
+
+                        <p className="contacto-fecha">
+                          {contacto.fecha}
+                        </p>
                       </div>
 
                       <span
@@ -178,9 +220,12 @@ function ContactosAdmin() {
                       <button
                         className="btn btn-outline-dark"
                         type="button"
-                        onClick={() => {
-                          marcarContactoRespondido(contacto.id);
-                          recargarContactos();
+                        onClick={async () => {
+                          await marcarContactoRespondido(
+                            contacto.id
+                          );
+
+                          await recargarContactos();
                         }}
                       >
                         Respondido
@@ -189,9 +234,12 @@ function ContactosAdmin() {
                       <button
                         className="btn btn-outline-dark"
                         type="button"
-                        onClick={() => {
-                          archivarContacto(contacto.id);
-                          recargarContactos();
+                        onClick={async () => {
+                          await archivarContacto(
+                            contacto.id
+                          );
+
+                          await recargarContactos();
                         }}
                       >
                         Archivar
@@ -200,7 +248,9 @@ function ContactosAdmin() {
                       <button
                         className="btn btn-dark"
                         type="button"
-                        onClick={() => handleEliminar(contacto)}
+                        onClick={() =>
+                          handleEliminar(contacto)
+                        }
                       >
                         Eliminar
                       </button>
@@ -215,8 +265,13 @@ function ContactosAdmin() {
 
       <footer className="footer-custom">
         <div className="container text-center py-4">
-          <p className="mb-2">&copy; 2024 Vura Bazar Natural</p>
-          <p className="small">Hecho en Chile</p>
+          <p className="mb-2">
+            &copy; 2024 Vura Bazar Natural
+          </p>
+
+          <p className="small">
+            Hecho en Chile
+          </p>
         </div>
       </footer>
     </>

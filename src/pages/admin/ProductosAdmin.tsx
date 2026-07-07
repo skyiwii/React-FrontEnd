@@ -39,12 +39,20 @@ function ProductosAdmin() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setProductos(obtenerProductos());
-    setCategorias(obtenerCategorias());
+    async function cargarDatos() {
+      const productos = await obtenerProductos();
+      const categorias = await obtenerCategorias();
+
+      setProductos(productos);
+      setCategorias(categorias);
+    }
+
+    cargarDatos();
   }, []);
 
-  function recargarProductos() {
-    setProductos(obtenerProductos());
+  async function recargarProductos() {
+    const productos = await obtenerProductos();
+    setProductos(productos);
   }
 
   function limpiarFormulario() {
@@ -62,11 +70,13 @@ function ProductosAdmin() {
   function obtenerInfoProducto(): string[] {
     return infoTexto
       .split("\n")
-      .map(item => item.trim())
-      .filter(item => item !== "");
+      .map((item) => item.trim())
+      .filter((item) => item !== "");
   }
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    evento: React.FormEvent<HTMLFormElement>
+  ) {
     evento.preventDefault();
 
     const precioNumber = Number(precio);
@@ -99,16 +109,16 @@ function ProductosAdmin() {
     };
 
     if (productoEditandoId) {
-      editarProducto(productoEditandoId, datosProducto);
+      await editarProducto(
+        String(productoEditandoId),
+        datosProducto
+      );
     } else {
-      crearProducto({
-        id: crypto.randomUUID(),
-        ...datosProducto
-      });
+      await crearProducto(datosProducto);
     }
 
     limpiarFormulario();
-    recargarProductos();
+    await recargarProductos();
   }
 
   function cargarFormularioEditar(producto: Producto) {
@@ -127,15 +137,15 @@ function ProductosAdmin() {
     });
   }
 
-  function handleEliminar(producto: Producto) {
+  async function handleEliminar(producto: Producto) {
     const confirmar = confirm(`¿Eliminar "${producto.nombre}"?`);
 
     if (!confirmar) {
       return;
     }
 
-    eliminarProducto(producto.id);
-    recargarProductos();
+    await eliminarProducto(String(producto.id));
+    await recargarProductos();
   }
 
   function handleLogout() {
@@ -143,7 +153,7 @@ function ProductosAdmin() {
     navigate("/");
   }
 
-  return (
+    return (
     <>
       <header>
         <nav className="navbar navbar-expand-lg navbar-light fixed-top shadow-sm navbar-custom">
@@ -162,7 +172,10 @@ function ProductosAdmin() {
             </Link>
 
             <div className="ms-auto d-flex gap-2">
-              <Link to="/intranet/admin" className="btn btn-outline-dark btn-sm">
+              <Link
+                to="/intranet/admin"
+                className="btn btn-outline-dark btn-sm"
+              >
                 Dashboard
               </Link>
 
@@ -199,7 +212,9 @@ function ProductosAdmin() {
             <div className="productos-form card-base">
               <div className="form-header">
                 <h2>
-                  {productoEditandoId ? "Editar Producto" : "Crear Producto"}
+                  {productoEditandoId
+                    ? "Editar Producto"
+                    : "Crear Producto"}
                 </h2>
 
                 <p>Completa la información del producto.</p>
@@ -207,7 +222,10 @@ function ProductosAdmin() {
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="nombre-producto" className="form-label">
+                  <label
+                    htmlFor="nombre-producto"
+                    className="form-label"
+                  >
                     Nombre
                   </label>
 
@@ -223,7 +241,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="descripcion-producto" className="form-label">
+                  <label
+                    htmlFor="descripcion-producto"
+                    className="form-label"
+                  >
                     Descripción
                   </label>
 
@@ -239,7 +260,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="info-producto" className="form-label">
+                  <label
+                    htmlFor="info-producto"
+                    className="form-label"
+                  >
                     Información Técnica
                   </label>
 
@@ -259,7 +283,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="uso-producto" className="form-label">
+                  <label
+                    htmlFor="uso-producto"
+                    className="form-label"
+                  >
                     Consejos de Uso
                   </label>
 
@@ -275,7 +302,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="precio-producto" className="form-label">
+                  <label
+                    htmlFor="precio-producto"
+                    className="form-label"
+                  >
                     Precio
                   </label>
 
@@ -291,7 +321,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="categoria-producto" className="form-label">
+                  <label
+                    htmlFor="categoria-producto"
+                    className="form-label"
+                  >
                     Categoría
                   </label>
 
@@ -320,7 +353,10 @@ function ProductosAdmin() {
                 </div>
 
                 <div className="mb-4">
-                  <label htmlFor="imagen-producto" className="form-label">
+                  <label
+                    htmlFor="imagen-producto"
+                    className="form-label"
+                  >
                     URL Imagen
                   </label>
 
@@ -339,8 +375,13 @@ function ProductosAdmin() {
                   </p>
                 )}
 
-                <button type="submit" className="btn btn-dark w-100">
-                  {productoEditandoId ? "Actualizar Producto" : "Guardar Producto"}
+                <button
+                  type="submit"
+                  className="btn btn-dark w-100"
+                >
+                  {productoEditandoId
+                    ? "Actualizar Producto"
+                    : "Guardar Producto"}
                 </button>
               </form>
             </div>
@@ -351,6 +392,7 @@ function ProductosAdmin() {
           <div className="container">
             <div className="lista-header">
               <h2>Productos Registrados</h2>
+
               <p>Productos creados dentro del sistema.</p>
             </div>
 
@@ -361,7 +403,10 @@ function ProductosAdmin() {
                 </p>
               ) : (
                 productos.map((producto) => (
-                  <article className="producto-admin-card" key={producto.id}>
+                  <article
+                    className="producto-admin-card"
+                    key={producto.id}
+                  >
                     <img
                       src={resolverImagen(producto.imagen)}
                       alt={producto.nombre}
@@ -391,7 +436,9 @@ function ProductosAdmin() {
                         <button
                           className="btn btn-outline-dark btn-editar"
                           type="button"
-                          onClick={() => cargarFormularioEditar(producto)}
+                          onClick={() =>
+                            cargarFormularioEditar(producto)
+                          }
                         >
                           Editar
                         </button>
@@ -399,7 +446,9 @@ function ProductosAdmin() {
                         <button
                           className="btn btn-dark btn-eliminar"
                           type="button"
-                          onClick={() => handleEliminar(producto)}
+                          onClick={() =>
+                            handleEliminar(producto)
+                          }
                         >
                           Eliminar
                         </button>

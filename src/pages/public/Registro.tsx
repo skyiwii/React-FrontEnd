@@ -44,7 +44,7 @@ function Registro() {
     return Object.values(nuevosErrores).every((error) => error === "");
   }
 
-  function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     const formularioValido = validarFormulario();
@@ -63,7 +63,7 @@ function Registro() {
       favoritos: []
     };
 
-    const resultado = registrarUsuario(nuevoUsuario);
+    const resultado = await registrarUsuario(nuevoUsuario);
 
     if (!resultado.ok) {
       setMensaje(resultado.mensaje || "No se pudo registrar");
